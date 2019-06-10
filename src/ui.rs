@@ -17,6 +17,7 @@ use toml;
 use neovim_lib::NeovimApi;
 
 use crate::file_browser::FileBrowserWidget;
+use crate::font_settings_ui;
 use crate::misc;
 use crate::nvim::{ErrorReport, NvimCommand};
 use crate::plug_manager;
@@ -425,6 +426,7 @@ impl Ui {
         window: &gtk::ApplicationWindow,
     ) -> gtk::MenuButton {
         let plug_manager = self.plug_manager.clone();
+        let settings = self.settings.clone();
         let btn = gtk::MenuButton::new();
         btn.set_can_focus(false);
         btn.set_image(&gtk::Image::new_from_icon_name(
@@ -441,6 +443,7 @@ impl Ui {
 
         let section = Menu::new();
         section.append_item(&MenuItem::new("Sidebar", "app.show-sidebar"));
+        section.append_item(&MenuItem::new("Font settings", "app.font-settings"));
         menu.append_section(None, &section);
 
         let section = Menu::new();
@@ -449,6 +452,12 @@ impl Ui {
         menu.append_section(None, &section);
 
         menu.freeze();
+
+        let font_settings_action = SimpleAction::new("font-settings", None);
+        font_settings_action.connect_activate(
+            clone!(window => move |_, _| font_settings_ui::FontSettingsUi::new(&settings).show(&window)),
+        );
+        font_settings_action.set_enabled(true);
 
         let plugs_action = SimpleAction::new("Plugins", None);
         plugs_action.connect_activate(
@@ -461,6 +470,7 @@ impl Ui {
 
         app.add_action(&about_action);
         app.add_action(&plugs_action);
+        app.add_action(&font_settings_action);
 
         btn.set_menu_model(&menu);
         btn
